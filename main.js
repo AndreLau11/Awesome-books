@@ -1,43 +1,82 @@
-const books = document.getElementById("bookBase");
-const addForm = document.getElementById("bookForm");
-const newBookTitle = document.getElementById("bookTitle").value;
-const newBookAuthor = document.getElementById("bookAuthor").value;
-const addButton = document.getElementById("addButton");
+const titleInput = document.getElementById('bookTitle');
+const authorInput = document.getElementById('bookAuthor');
+const submitButton = document.getElementById('addButton');
 
-let bookListArray = JSON.parse(localStorage.getItem("bookListArray") || "[]");
+const radix = 10;
 
-function loadStorage() {
-    for (let i = 0; i<bookListArray.length; i+=1){
-        books.innerHTML += `<div id="book${i}" class='bookMark'>
-        <p>${bookListArray[i].title}</p>
-        <p>${bookListArray[i].author}</p>
-        <button id="button${i}" type="submit">Remove</button>
-        <hr>
-    </div>`;
-    }
-    localStorage.setItem("bookListArray", JSON.stringify(bookListArray));
-    console.log(JSON.parse(localStorage.getItem("bookListArray")))
+let bookStorage = {
+  totalBook: 0,
+  bookList: [],
 };
 
-// Add a new book to the list of books
+function loadLocalStorage() {
+  const data = localStorage.getItem('book');
+  bookStorage = JSON.parse(data);
+}
 
-function addition (){
-    bookListArray.push({title: document.getElementById("bookTitle").value, author: document.getElementById("bookAuthor").value});
-    document.getElementById("bookTitle").value = "";
-    document.getElementById("bookAuthor").value = "";
-    location.reload();
-    loadStorage();
+function createLocalStorage() {
+  if (localStorage.getItem('book') === null) {
+    localStorage.setItem('book', JSON.stringify(bookStorage));
+    loadLocalStorage();
+  } else {
+    loadLocalStorage();
+  }
+}
+
+function updateLocalStorage() {
+  localStorage.setItem('book', JSON.stringify(bookStorage));
+}
+
+const renderBook = (book) => {
+  const { id, title, author } = book;
+
+  const renderContainer = document.createElement('div');
+  renderContainer.setAttribute('data-id', id);
+  renderContainer.innerHTML = `
+            <h4>${title}</h4>
+            <h5>${author}</h5>
+            <button type="button" onclick="removeBook('${book.id}')">Remove</button>
+            <hr>
+  `;
+  return renderContainer;
 };
 
-addForm.addEventListener('submit', (event) => {
-    addition();
-    event.preventDefault();
-  });
+const renderBooks = () => {
+  createLocalStorage();
+  const container = document.getElementById('bookBase');
+  container.innerHTML = '';
+  if (bookStorage.bookList !== null) {
+    bookStorage.bookList.forEach((book) => {
+      container.appendChild(renderBook(book));
+    });
+  }
+};
 
-// remove an element from the list
+function removeBook(bookId) {
+  const books = bookStorage.bookList.filter((item) => item.id !== parseInt(bookId, radix));
+  bookStorage.bookList = books;
+  updateLocalStorage();
+  renderBooks();
+}
 
-// function remove () {
-// const index = 
-// }
+removeBook();
 
-document.addEventListener('DOMContentLoaded', loadStorage, false);
+function addBook(book) {
+  bookStorage.bookList.push(book);
+  updateLocalStorage();
+}
+
+submitButton.addEventListener('click', (e) => {
+  e.preventDefault();
+  bookStorage.totalBook += 1;
+  const book = {};
+  book.id = bookStorage.totalBook;
+  book.title = titleInput.value;
+  book.author = authorInput.value;
+  titleInput.value = '';
+  authorInput.value = '';
+  addBook(book);
+  renderBooks();
+});
+
+renderBooks();
