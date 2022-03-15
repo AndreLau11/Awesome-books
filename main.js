@@ -9,6 +9,7 @@ let bookStorage = {
   bookList: [],
 };
 
+
 function loadLocalStorage() {
   const data = localStorage.getItem('book');
   bookStorage = JSON.parse(data);
